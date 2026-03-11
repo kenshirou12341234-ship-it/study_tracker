@@ -1,0 +1,33 @@
+{% extends 'records:base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold text-red-600 mb-6">学習記録の削除</h1>
+        
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <p class="text-yellow-800 font-medium">⚠️ 本当に以下の学習記録を削除しますか？</p>
+            <p class="text-yellow-700 text-sm mt-1">この操作は取り消せません。</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">{{ object.title }}</h2>
+            <div class="flex items-center text-gray-600 space-x-4 mb-3">
+                <span>📅 {{ object.date }}</span>
+                <span>⏱️ {{ object.hours }}時間</span>
+            </div>
+            <p class="text-gray-700">{{ object.content|truncatewords:30 }}</p>
+        </div>
+        
+        <form method="post" class="flex space-x-3">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition font-medium">
+                削除する
+            </button>
+            <a href="{% url 'records:detail' object.pk %}" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition font-medium inline-block">
+                キャンセル
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
