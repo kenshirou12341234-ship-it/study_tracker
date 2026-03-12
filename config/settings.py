@@ -10,9 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from pathlib import Path
 import os
-import dj_database_url
+from pathlib import Path
+from dotenv import load_dotenv
+import dj_database_url  
+
+
+# .env ファイルを読み込む
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,12 +27,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wgse282j4tqzhjk#h*j@4igu$wggs878t16pj6pqsz*t$^*p1e')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = [
+     'localhost',
+    '127.0.0.1',
+    '172.22.200.124',  # あなたのPCのIPアドレスを追加
+    '*',
+    '.onrender.com',  
+    'study-tracker-djrb.onrender.com',  # ← 具体的なドメインも追加
+]
 
 
 # Application definition
@@ -44,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← この行が必要！
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -117,10 +131,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+
+
+
+# 本番環境用（collectstatic で収集される場所）
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# WhiteNoise の追加設定（オプション）
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
