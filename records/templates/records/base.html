@@ -15,22 +15,68 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen flex flex-col">
     <!-- ヘッダー -->
     <header class="bg-blue-600 text-white shadow-md">
-        <nav class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">📚 学習記録アプリ</h1>
-                <div class="space-x-4">
-                    <a href="{% url 'records:list' %}" class="hover:text-blue-200 transition">一覧</a>
-                    <a href="{% url 'records:create' %}" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">新規作成</a>
-                </div>
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- ロゴ・タイトル -->
+                <h1 class="text-2xl font-bold">
+                    <a href="{% url 'records:list' %}" class="hover:text-blue-200">
+                        学習記録アプリ
+                    </a>
+                </h1>
+                
+                <!-- ナビゲーション -->
+                <nav class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <!-- ログイン済みの場合 -->
+                        <span class="text-sm">ようこそ、{{ user.username }}さん</span>
+                        <a href="{% url 'records:list' %}" class="hover:text-blue-200">一覧</a>
+                        <a href="{% url 'records:create' %}" class="hover:text-blue-200">新規作成</a>
+                        
+                        <!-- ログアウトフォーム -->
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition duration-200">
+                                ログアウト
+                            </button>
+                        </form>
+                    {% else %}
+                        <!-- 未ログインの場合 -->
+                        <a href="{% url 'login' %}" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition duration-200">
+                            ログイン
+                        </a>
+                        <a href="{% url 'register' %}" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition duration-200">
+                            新規登録
+                        </a>
+                    {% endif %}
+                </nav>
             </div>
-        </nav>
+        </div>
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="rounded-lg p-4 mb-4 
+                         {% if message.tags == 'success' %}
+                             bg-green-100 border border-green-400 text-green-700
+                         {% elif message.tags == 'error' %}
+                             bg-red-100 border border-red-400 text-red-700
+                         {% elif message.tags == 'warning' %}
+                             bg-yellow-100 border border-yellow-400 text-yellow-700
+                         {% else %}
+                             bg-blue-100 border border-blue-400 text-blue-700
+                         {% endif %}">
+                        <p class="font-medium">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         {% block content %}
         {% endblock %}
     </main>
@@ -39,6 +85,24 @@
     <footer class="bg-gray-800 text-white text-center py-4 mt-auto">
         <p>&copy; 2026 学習記録アプリ</p>
     </footer>
+
+    <!-- ↓ ここから JavaScript（</body> の直前に配置） -->
+    
+    <!-- メッセージ自動消去 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const messages = document.querySelectorAll('.mb-6 > div');
+            messages.forEach((message) => {
+                setTimeout(() => {
+                    message.style.transition = 'opacity 0.5s';
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 500);
+                }, 3000); // 3000ミリ秒 = 3秒
+            });
+        });
+    </script>
 
     <!-- Service Worker の登録 -->
     <script>
@@ -56,3 +120,22 @@
     </script>
 </body>
 </html>
+修正のポイント
+1. ヘッダー全体を <header> タグで囲む
+<header class="bg-blue-600 text-white shadow-md">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <!-- ロゴ・タイトル -->
+            <h1 class="text-2xl font-bold">
+                <a href="{% url 'records:list' %}" class="hover:text-blue-200">
+                    学習記録アプリ
+                </a>
+            </h1>
+            
+            <!-- ナビゲーション -->
+            <nav class="flex items-center space-x-4">
+                <!-- ログイン・ログアウトのリンク -->
+            </nav>
+        </div>
+    </div>
+</header>

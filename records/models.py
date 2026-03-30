@@ -8,8 +8,8 @@ User = get_user_model()
 class StudyRecord(models.Model):
     """学習記録モデル"""
     user = models.ForeignKey(User, on_delete=models.CASCADE)  
-    title = models.CharField('タイトル', max_length=200)
-    content = models.TextField('学習内容')
+    title = models.CharField('タイトル', max_length=200, blank=True)
+    content = models.TextField('学習内容', blank=True)
     hours = models.DecimalField('学習時間（時間）', max_digits=4, decimal_places=1)
     date = models.DateField('学習日', default=timezone.now)
     created_at = models.DateTimeField('作成日時', auto_now_add=True)
