@@ -8,7 +8,7 @@
         <h2>📚 学習項目一覧</h2>
     </div>
     <div class="col-auto">
-        <a href="{% url 'certification_create' %}" class="btn btn-primary">➕ 学習項目を追加</a>
+        <a href="{% url 'records:certification_create' %}" class="btn btn-primary">➕ 学習項目を追加</a>
     </div>
 </div>
 
@@ -27,8 +27,8 @@
                         <span class="badge bg-info">累計: {{ cert.total_hours|default:0 }}時間</span>
                     </div>
                     <div>
-                        <a href="{% url 'certification_update' cert.pk %}" class="btn btn-sm btn-outline-primary">編集</a>
-                        <a href="{% url 'certification_delete' cert.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+                        <a href="{% url 'records:certification_update' cert.pk %}" class="btn btn-sm btn-outline-primary">編集</a>
+                        <a href="{% url 'records:certification_delete' cert.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
                     </div>
                 </div>
             </div>

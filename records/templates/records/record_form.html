@@ -30,7 +30,7 @@
                             <div class="text-danger">{{ form.certification.errors }}</div>
                         {% endif %}
                         <small class="form-text text-muted">
-                            学習項目がない場合は <a href="{% url 'certification_create' %}" target="_blank">こちら</a> から作成してください
+                            学習項目がない場合は <a href="{% url 'records:certification_create' %}" target="_blank">こちら</a> から作成してください
                         </small>
                     </div>
                     
@@ -53,7 +53,7 @@
                     </div>
                     
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">キャンセル</a>
+                        <a href="{% url 'records:dashboard' %}" class="btn btn-secondary">キャンセル</a>
                         <button type="submit" class="btn btn-primary">保存</button>
                     </div>
                 </form>

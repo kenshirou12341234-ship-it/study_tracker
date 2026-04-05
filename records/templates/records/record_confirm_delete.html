@@ -1,6 +1,6 @@
 {% extends 'records/base.html' %}
 
-{% block title %}学習項目の削除確認{% endblock %}
+{% block title %}学習記録の削除確認{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -8,30 +8,33 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">学習項目の削除確認</h4>
+                    <h4 class="mb-0">学習記録の削除確認</h4>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning" role="alert">
                         <strong>⚠️ 警告</strong><br>
-                        以下の学習項目を削除しようとしています。この操作は取り消せません。<br>
-                        <strong>この学習項目に関連する学習記録もすべて削除されます。</strong>
+                        以下の学習記録を削除しようとしています。この操作は取り消せません。
                     </div>
                     
                     <div class="card mb-3">
                         <div class="card-body">
-                            <h5 class="card-title">{{ certification.name }}</h5>
-                            {% if certification.description %}
-                            <p class="card-text">{{ certification.description }}</p>
-                            {% endif %}
+                            <h5 class="card-title">{{ record.certification.name }}</h5>
+                            <p class="card-text">
+                                <strong>日付：</strong> {{ record.date }}<br>
+                                <strong>学習時間：</strong> {{ record.hours }} 時間<br>
+                                {% if record.memo %}
+                                <strong>メモ：</strong> {{ record.memo }}
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                     
-                    <p class="text-danger">本当にこの学習項目を削除しますか？</p>
+                    <p class="text-danger">本当にこの学習記録を削除しますか？</p>
                     
                     <form method="post">
                         {% csrf_token %}
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'records:certification_list' %}" class="btn btn-secondary">
+                            <a href="{% url 'records:dashboard' %}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left"></i> キャンセル
                             </a>
                             <button type="submit" class="btn btn-danger">

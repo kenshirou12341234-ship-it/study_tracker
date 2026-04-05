@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from datetime import datetime, timedelta
+from django.contrib.auth.forms import UserCreationForm
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
 from .models import Certification, StudyRecord
 from .forms import CertificationForm, StudyRecordForm
 
@@ -67,7 +70,7 @@ def record_create(request):
             record.user = request.user
             record.save()
             messages.success(request, '学習記録を作成しました！')
-            return redirect('dashboard')
+            return redirect('records:dashboard')
     else:
         form = StudyRecordForm(user=request.user)
     
@@ -84,7 +87,7 @@ def record_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, '学習記録を更新しました！')
-            return redirect('dashboard')
+            return redirect('records:dashboard')
     else:
         form = StudyRecordForm(instance=record, user=request.user)
     
@@ -99,7 +102,7 @@ def record_delete(request, pk):
     if request.method == 'POST':
         record.delete()
         messages.success(request, '学習記録を削除しました！')
-        return redirect('dashboard')
+        return redirect('records:dashboard')
     
     return render(request, 'records/record_confirm_delete.html', {'record': record})
 
@@ -112,12 +115,13 @@ def certification_list(request):
     certifications = Certification.objects.filter(
         user=request.user
     ).annotate(
-        total_hours=Sum('study_records__hours')  # ← studyrecord → study_records に修正
+        total_hours=Sum('study_records__hours')
     ).order_by('name')
     
     return render(request, 'records/certification_list.html', {
         'certifications': certifications
     })
+
 
 @login_required
 def certification_create(request):
@@ -129,7 +133,7 @@ def certification_create(request):
             certification.user = request.user
             certification.save()
             messages.success(request, f'学習項目「{certification.name}」を作成しました！')
-            return redirect('certification_list')
+            return redirect('records:certification_list')
     else:
         form = CertificationForm()
     
@@ -146,7 +150,7 @@ def certification_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f'学習項目「{certification.name}」を更新しました！')
-            return redirect('certification_list')
+            return redirect('records:certification_list')
     else:
         form = CertificationForm(instance=certification)
     
@@ -161,6 +165,15 @@ def certification_delete(request, pk):
     if request.method == 'POST':
         certification.delete()
         messages.success(request, f'学習項目「{certification.name}」を削除しました！')
-        return redirect('certification_list')
+        return redirect('records:certification_list')
     
     return render(request, 'records/certification_confirm_delete.html', {'certification': certification})
+
+
+# ========== ユーザー登録 ==========
+
+class RegisterView(CreateView):
+    """ユーザー登録"""
+    form_class = UserCreationForm
+    template_name = 'records/register.html'
+    success_url = reverse_lazy('login')

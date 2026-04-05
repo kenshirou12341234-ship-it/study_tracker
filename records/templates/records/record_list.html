@@ -8,7 +8,7 @@
         <h2>📝 学習記録一覧</h2>
     </div>
     <div class="col-auto">
-        <a href="{% url 'record_create' %}" class="btn btn-primary">➕ 学習記録を追加</a>
+        <a href="{% url 'records:record_create' %}" class="btn btn-primary">➕ 学習記録を追加</a>
     </div>
 </div>
 
@@ -40,8 +40,8 @@
                         <td>{{ record.hours }}時間</td>
                         <td>{{ record.description|truncatewords:15 }}</td>
                         <td class="text-end">
-                            <a href="{% url 'record_update' record.pk %}" class="btn btn-sm btn-outline-primary">編集</a>
-                            <a href="{% url 'record_delete' record.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+                            <a href="{% url 'records:record_update' record.pk %}" class="btn btn-sm btn-outline-primary">編集</a>
+                            <a href="{% url 'records:record_delete' record.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
                         </td>
                     </tr>
                     {% endfor %}

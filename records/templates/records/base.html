@@ -10,20 +10,17 @@
     <!-- ナビゲーションバー -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">📚 学習時間管理</a>
+            <a class="navbar-brand" href="{% url 'records:dashboard' %}">📚 学習時間管理</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">ダッシュボード</a>
+                        <a class="nav-link" href="{% url 'records:dashboard' %}">ダッシュボード</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'record_list' %}">学習記録</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'certification_list' %}">学習項目</a>
+                        <a class="nav-link" href="{% url 'records:record_list' %}">学習記録</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -33,7 +30,13 @@
                         </span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">ログアウト</a>
+                        <!-- ✅ フォームでPOSTリクエストを送信 -->
+                        <form method="post" action="{% url 'records:logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link nav-link" style="border: none; background: none; cursor: pointer;">
+                                ログアウト
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>
