@@ -1,0 +1,64 @@
+{% extends 'records/base.html' %}
+
+{% block title %}{{ title }} - 学習時間管理{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- 日付 -->
+                    <div class="mb-3">
+                        <label for="{{ form.date.id_for_label }}" class="form-label">日付 *</label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="text-danger">{{ form.date.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 学習項目 -->
+                    <div class="mb-3">
+                        <label for="{{ form.certification.id_for_label }}" class="form-label">学習項目</label>
+                        {{ form.certification }}
+                        {% if form.certification.errors %}
+                            <div class="text-danger">{{ form.certification.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            学習項目がない場合は <a href="{% url 'certification_create' %}" target="_blank">こちら</a> から作成してください
+                        </small>
+                    </div>
+                    
+                    <!-- 学習時間 -->
+                    <div class="mb-3">
+                        <label for="{{ form.hours.id_for_label }}" class="form-label">学習時間（時間） *</label>
+                        {{ form.hours }}
+                        {% if form.hours.errors %}
+                            <div class="text-danger">{{ form.hours.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 内容 -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">学習内容</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">キャンセル</a>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,143 +1,166 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.shortcuts import redirect, render  # ← render を追加
-from django.urls import reverse_lazy
 from django.db.models import Sum
 from datetime import datetime, timedelta
-from .models import StudyRecord
-from .forms import StudyRecordForm
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from .models import Certification, StudyRecord
+from .forms import CertificationForm, StudyRecordForm
 
 
-class RecordListView(LoginRequiredMixin, ListView):
-    """学習記録一覧（自分の記録だけ表示）"""
-    model = StudyRecord
-    template_name = 'records/list.html'
-    context_object_name = 'records'
+@login_required
+def dashboard(request):
+    """ダッシュボード表示"""
     
-    def get_queryset(self):
-        """自分の記録だけを取得"""
-        return StudyRecord.objects.filter(user=self.request.user).order_by('-date')
+    today = datetime.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_month = today.replace(day=1)
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # 自分の記録だけを集計（get_queryset()を再利用）
-        user_records = self.get_queryset()
-        
-        # 総学習時間
-        total_hours = user_records.aggregate(Sum('hours'))['hours__sum'] or 0
-        context['total_hours'] = total_hours
-        
-        # 今週の学習時間
-        today = datetime.now().date()
-        week_start = today - timedelta(days=today.weekday())
-        week_hours = user_records.filter(
-            date__gte=week_start
-        ).aggregate(Sum('hours'))['hours__sum'] or 0
-        context['week_hours'] = week_hours
-        
-        # 今月の学習時間
-        month_start = today.replace(day=1)
-        month_hours = user_records.filter(
-            date__gte=month_start
-        ).aggregate(Sum('hours'))['hours__sum'] or 0
-        context['month_hours'] = month_hours
-        
-        # レコード数
-        context['record_count'] = user_records.count()
-        
-        return context
+    # ログインユーザーの学習記録のみを取得
+    user_records = StudyRecord.objects.filter(user=request.user)
+    
+    # 集計
+    total_hours = user_records.aggregate(Sum('hours'))['hours__sum'] or 0
+    weekly_hours = user_records.filter(
+        date__gte=start_of_week
+    ).aggregate(Sum('hours'))['hours__sum'] or 0
+    monthly_hours = user_records.filter(
+        date__gte=start_of_month
+    ).aggregate(Sum('hours'))['hours__sum'] or 0
+    
+    # 最近の学習記録
+    recent_records = user_records[:5]
+    
+    # 学習項目別の集計
+    cert_stats = []
+    for cert in Certification.objects.filter(user=request.user):
+        hours = user_records.filter(certification=cert).aggregate(Sum('hours'))['hours__sum'] or 0
+        cert_stats.append({
+            'name': cert.name,
+            'hours': hours
+        })
+    
+    context = {
+        'total_hours': total_hours,
+        'weekly_hours': weekly_hours,
+        'monthly_hours': monthly_hours,
+        'recent_records': recent_records,
+        'cert_stats': cert_stats,
+    }
+    
+    return render(request, 'records/dashboard.html', context)
 
 
-class RecordDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-    """学習記録詳細（自分の記録だけアクセス可能）"""
-    model = StudyRecord
-    template_name = 'records/detail.html'
-    context_object_name = 'record'
-    
-    def test_func(self):
-        """自分の記録かどうかをチェック"""
-        record = self.get_object()
-        return record.user == self.request.user
-    
-    def handle_no_permission(self):
-        """権限がない場合の処理"""
-        messages.error(self.request, 'この記録にアクセスする権限がありません。')
-        return redirect('records:list')
+@login_required
+def record_list(request):
+    """学習記録一覧"""
+    records = StudyRecord.objects.filter(user=request.user)
+    return render(request, 'records/record_list.html', {'records': records})
 
 
-class RecordCreateView(LoginRequiredMixin, CreateView):
-    """学習記録新規作成"""
-    model = StudyRecord
-    form_class = StudyRecordForm
-    template_name = 'records/form.html'
-    success_url = reverse_lazy('records:list')
-    
-    def form_valid(self, form):
-        """保存前にユーザーを紐づける"""
-        form.instance.user = self.request.user
-        messages.success(self.request, '学習記録を作成しました。')
-        return super().form_valid(form)
-
-
-class RecordUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """学習記録編集（自分の記録だけ編集可能）"""
-    model = StudyRecord
-    form_class = StudyRecordForm
-    template_name = 'records/form.html'
-    
-    def test_func(self):
-        """自分の記録かどうかをチェック"""
-        record = self.get_object()
-        return record.user == self.request.user
-    
-    def handle_no_permission(self):
-        """権限がない場合の処理"""
-        messages.error(self.request, 'この記録を編集する権限がありません。')
-        return redirect('records:list')
-    
-    def get_success_url(self):
-        """編集後は詳細ページに戻る"""
-        messages.success(self.request, '学習記録を更新しました。')
-        return reverse_lazy('records:detail', kwargs={'pk': self.object.pk})
-
-
-class RecordDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """学習記録削除（自分の記録だけ削除可能）"""
-    model = StudyRecord
-    template_name = 'records/delete.html'
-    success_url = reverse_lazy('records:list')
-    
-    def test_func(self):
-        """自分の記録かどうかをチェック"""
-        record = self.get_object()
-        return record.user == self.request.user
-    
-    def handle_no_permission(self):
-        """権限がない場合の処理"""
-        messages.error(self.request, 'この記録を削除する権限がありません。')
-        return redirect('records:list')
-    
-    def delete(self, request, *args, **kwargs):
-        """削除時にメッセージを表示"""
-        messages.success(self.request, '学習記録を削除しました。')
-        return super().delete(request, *args, **kwargs)
-
-
-# ↓ ここから register 関数（クラスの外に配置）
-def register(request):
-    """新規登録ビュー"""
+@login_required
+def record_create(request):
+    """学習記録作成"""
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = StudyRecordForm(request.POST, user=request.user)
         if form.is_valid():
-            user = form.save()
-            login(request, user)  # 登録後に自動ログイン
-            messages.success(request, 'アカウントを作成しました。')
-            return redirect('records:list')  # 学習記録一覧へリダイレクト
+            record = form.save(commit=False)
+            record.user = request.user
+            record.save()
+            messages.success(request, '学習記録を作成しました！')
+            return redirect('dashboard')
     else:
-        form = UserCreationForm()
+        form = StudyRecordForm(user=request.user)
     
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'records/record_form.html', {'form': form, 'title': '学習記録を作成'})
+
+
+@login_required
+def record_update(request, pk):
+    """学習記録編集"""
+    record = get_object_or_404(StudyRecord, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        form = StudyRecordForm(request.POST, instance=record, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '学習記録を更新しました！')
+            return redirect('dashboard')
+    else:
+        form = StudyRecordForm(instance=record, user=request.user)
+    
+    return render(request, 'records/record_form.html', {'form': form, 'title': '学習記録を編集'})
+
+
+@login_required
+def record_delete(request, pk):
+    """学習記録削除"""
+    record = get_object_or_404(StudyRecord, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        record.delete()
+        messages.success(request, '学習記録を削除しました！')
+        return redirect('dashboard')
+    
+    return render(request, 'records/record_confirm_delete.html', {'record': record})
+
+
+# ========== 学習項目管理 ==========
+
+@login_required
+def certification_list(request):
+    """学習項目一覧"""
+    certifications = Certification.objects.filter(
+        user=request.user
+    ).annotate(
+        total_hours=Sum('study_records__hours')  # ← studyrecord → study_records に修正
+    ).order_by('name')
+    
+    return render(request, 'records/certification_list.html', {
+        'certifications': certifications
+    })
+
+@login_required
+def certification_create(request):
+    """学習項目作成"""
+    if request.method == 'POST':
+        form = CertificationForm(request.POST)
+        if form.is_valid():
+            certification = form.save(commit=False)
+            certification.user = request.user
+            certification.save()
+            messages.success(request, f'学習項目「{certification.name}」を作成しました！')
+            return redirect('certification_list')
+    else:
+        form = CertificationForm()
+    
+    return render(request, 'records/certification_form.html', {'form': form, 'title': '学習項目を作成'})
+
+
+@login_required
+def certification_update(request, pk):
+    """学習項目編集"""
+    certification = get_object_or_404(Certification, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        form = CertificationForm(request.POST, instance=certification)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'学習項目「{certification.name}」を更新しました！')
+            return redirect('certification_list')
+    else:
+        form = CertificationForm(instance=certification)
+    
+    return render(request, 'records/certification_form.html', {'form': form, 'title': '学習項目を編集'})
+
+
+@login_required
+def certification_delete(request, pk):
+    """学習項目削除"""
+    certification = get_object_or_404(Certification, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        certification.delete()
+        messages.success(request, f'学習項目「{certification.name}」を削除しました！')
+        return redirect('certification_list')
+    
+    return render(request, 'records/certification_confirm_delete.html', {'certification': certification})

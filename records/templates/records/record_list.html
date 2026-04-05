@@ -1,0 +1,59 @@
+{% extends 'records/base.html' %}
+
+{% block title %}学習記録一覧 - 学習時間管理{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>📝 学習記録一覧</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'record_create' %}" class="btn btn-primary">➕ 学習記録を追加</a>
+    </div>
+</div>
+
+{% if records %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>学習項目</th>
+                        <th>時間</th>
+                        <th>内容</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>
+                            {% if record.certification %}
+                                <span class="badge bg-info">{{ record.certification.name }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">未分類</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.hours }}時間</td>
+                        <td>{{ record.description|truncatewords:15 }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'record_update' record.pk %}" class="btn btn-sm btn-outline-primary">編集</a>
+                            <a href="{% url 'record_delete' record.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    まだ学習記録がありません。<br>
+    「学習記録を追加」ボタンから記録を始めましょう！
+</div>
+{% endif %}
+{% endblock %}

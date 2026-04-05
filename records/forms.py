@@ -1,44 +1,58 @@
 from django import forms
-from .models import StudyRecord
+from .models import Certification, StudyRecord
+
+
+class CertificationForm(forms.ModelForm):
+    """学習項目作成・編集フォーム"""
+    
+    class Meta:
+        model = Certification
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '例: RUNTEQ、基本情報技術者試験'
+            })
+        }
+        labels = {
+            'name': '学習項目名'
+        }
 
 
 class StudyRecordForm(forms.ModelForm):
-    """学習記録のフォーム"""
+    """学習記録作成・編集フォーム"""
     
     class Meta:
         model = StudyRecord
-        fields = ['date', 'title', 'hours', 'content']
+        fields = ['certification', 'date', 'hours', 'description']
         widgets = {
+            'certification': forms.Select(attrs={'class': 'form-control'}),
             'date': forms.DateInput(attrs={
-                'type': 'date',
-                'class': 'form-control'
-            }),
-            'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'タイトルを入力（任意）'
+                'type': 'date'
             }),
             'hours': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '0',
-                'step': '0.1',
-                'placeholder': '例：3.5'
+                'step': '0.25',
+                'min': '0'
             }),
-            'content': forms.Textarea(attrs={
+            'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 5,
-                'placeholder': '学習内容を入力（任意）'
-            }),
+                'rows': 3,
+                'placeholder': '今日学習した内容を記録しましょう'
+            })
         }
         labels = {
+            'certification': '学習項目',
             'date': '学習日',
-            'title': 'タイトル',
             'hours': '学習時間（時間）',
-            'content': '学習内容',
+            'description': '学習内容'
         }
     
-    # ↓ ここから __init__ メソッド（Meta クラスの外に出す）
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # title と content を任意項目にする
-        self.fields['title'].required = False
-        self.fields['content'].required = False
+        
+        # ログインユーザーの学習項目のみを選択肢として表示
+        if user:
+            self.fields['certification'].queryset = Certification.objects.filter(user=user)
