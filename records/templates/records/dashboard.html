@@ -1,113 +1,153 @@
 {% extends 'records/base.html' %}
 
-{% block title %}ダッシュボード - 学習時間管理{% endblock %}
+{% block title %}ダッシュボード{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2>📊 ダッシュボード</h2>
-    </div>
-    <div class="col-auto">
-        <a href="{% url 'records:record_create' %}" class="btn btn-primary">➕ 学習記録を追加</a>
-    </div>
-</div>
+<div class="container mt-4">
+  <h2>学習記録ダッシュボード</h2>
 
-<!-- 学習時間サマリー -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title text-muted">今週の学習時間</h5>
-                <p class="display-4 text-primary">{{ weekly_hours }}h</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title text-muted">今月の学習時間</h5>
-                <p class="display-4 text-success">{{ monthly_hours }}h</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title text-muted">累計学習時間</h5>
-                <p class="display-4 text-info">{{ total_hours }}h</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 学習項目別の集計 -->
-{% if cert_stats %}
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">📚 学習項目別の学習時間</h5>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>学習項目</th>
-                        <th class="text-end">学習時間</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stat in cert_stats %}
-                    <tr>
-                        <td>{{ stat.name }}</td>
-                        <td class="text-end">{{ stat.hours }}時間</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- 最近の学習記録 -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">📝 最近の学習記録</h5>
-        <a href="{% url 'records:record_list' %}" class="btn btn-sm btn-outline-primary">すべて見る</a>
-    </div>
-    <div class="card-body">
-        {% if recent_records %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>日付</th>
-                        <th>学習項目</th>
-                        <th>時間</th>
-                        <th>内容</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in recent_records %}
-                    <tr>
-                        <td>{{ record.date }}</td>
-                        <td>
-                            {% if record.certification %}
-                                {{ record.certification.name }}
-                            {% else %}
-                                未分類
-                            {% endif %}
-                        </td>
-                        <td>{{ record.hours }}時間</td>
-                        <td>{{ record.description|truncatewords:10 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <!-- 統計情報 -->
+  <div class="row mt-4">
+  <!-- 総学習時間 -->
+  <div class="col-md-4">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">総学習時間</h5>
+        {% if total_hours >= 100 %}
+          <p class="card-text display-4 text-success">{{ total_hours }}時間</p>
+        {% elif total_hours >= 50 %}
+          <p class="card-text display-4 text-primary">{{ total_hours }}時間</p>
+        {% elif total_hours >= 20 %}
+          <p class="card-text display-4 text-info">{{ total_hours }}時間</p>
+        {% elif total_hours > 0 %}
+          <p class="card-text display-4 text-warning">{{ total_hours }}時間</p>
         {% else %}
-        <p class="text-muted text-center py-4">まだ学習記録がありません。<br>「学習記録を追加」ボタンから記録を始めましょう！</p>
+          <p class="card-text display-4 text-secondary">{{ total_hours }}時間</p>
         {% endif %}
+      </div>
     </div>
+  </div>
+
+  <!-- 今週の学習時間 -->
+  <div class="col-md-4">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">今週の学習時間</h5>
+        {% if weekly_hours >= 20 %}
+          <p class="card-text display-4 text-success">{{ weekly_hours }}時間</p>
+        {% elif weekly_hours >= 10 %}
+          <p class="card-text display-4 text-primary">{{ weekly_hours }}時間</p>
+        {% elif weekly_hours >= 5 %}
+          <p class="card-text display-4 text-info">{{ weekly_hours }}時間</p>
+        {% elif weekly_hours > 0 %}
+          <p class="card-text display-4 text-warning">{{ weekly_hours }}時間</p>
+        {% else %}
+          <p class="card-text display-4 text-secondary">{{ weekly_hours }}時間</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 今月の学習時間 -->
+  <div class="col-md-4">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">今月の学習時間</h5>
+        {% if monthly_hours >= 80 %}
+          <p class="card-text display-4 text-success">{{ monthly_hours }}時間</p>
+        {% elif monthly_hours >= 40 %}
+          <p class="card-text display-4 text-primary">{{ monthly_hours }}時間</p>
+        {% elif monthly_hours >= 20 %}
+          <p class="card-text display-4 text-info">{{ monthly_hours }}時間</p>
+        {% elif monthly_hours > 0 %}
+          <p class="card-text display-4 text-warning">{{ monthly_hours }}時間</p>
+        {% else %}
+          <p class="card-text display-4 text-secondary">{{ monthly_hours }}時間</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+  <!-- 最近の学習記録と学習項目別の学習時間を横並びに -->
+  <div class="row mt-5">
+    <!-- 左側：最近の学習記録 -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">最近の学習記録</h5>
+          <a href="{% url 'records:record_list' %}" class="btn btn-sm btn-primary">すべて見る</a>
+        </div>
+        <div class="card-body">
+          {% if recent_records %}
+            <div class="list-group">
+              {% for record in recent_records %}
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between">
+                    <h6 class="mb-1">{{ record.certification.name }}</h6>
+                    <small>{{ record.date }}</small>
+                  </div>
+                  <p class="mb-1">{{ record.hours }}時間</p>
+                  {% if record.memo %}
+                    <small class="text-muted">{{ record.memo|truncatewords:10 }}</small>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted">学習記録がまだありません。</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側：学習項目別の学習時間 -->
+    <div class="col-md-6">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">学習項目別の学習時間</h5>
+      <a href="{% url 'records:certification_list' %}" class="btn btn-sm btn-primary">管理</a>
+    </div>
+    <div class="card-body">
+      {% if cert_stats %}
+        <div class="list-group">
+          {% for stat in cert_stats %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              {{ stat.name }}
+              {% if stat.hours >= 50 %}
+                <span class="badge bg-success rounded-pill">{{ stat.hours }}時間</span>
+              {% elif stat.hours >= 20 %}
+                <span class="badge bg-primary rounded-pill">{{ stat.hours }}時間</span>
+              {% elif stat.hours >= 10 %}
+                <span class="badge bg-info rounded-pill">{{ stat.hours }}時間</span>
+              {% elif stat.hours > 0 %}
+                <span class="badge bg-warning rounded-pill">{{ stat.hours }}時間</span>
+              {% else %}
+                <span class="badge bg-secondary rounded-pill">{{ stat.hours }}時間</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">学習項目がまだありません。</p>
+        <a href="{% url 'records:certification_create' %}" class="btn btn-sm btn-primary">学習項目を追加</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+  <!-- クイックアクション -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">クイックアクション</h5>
+        </div>
+        <div class="card-body">
+          <a href="{% url 'records:record_create' %}" class="btn btn-primary me-2">学習記録を追加</a>
+          <a href="{% url 'records:certification_create' %}" class="btn btn-secondary">学習項目を追加</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

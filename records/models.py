@@ -22,6 +22,12 @@ class Certification(models.Model):
         verbose_name = '学習項目'
         verbose_name_plural = '学習項目'
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'name'],
+                name='unique_user_certification'
+            )
+        ]
 
 
 class StudyRecord(models.Model):
